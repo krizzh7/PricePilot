@@ -1,0 +1,24 @@
+node_modules/
+.next/
+.next-*
+coverage/
+playwright-report/
+test-results/
+.vercel/
+
+.env
+.env.*
+!.env.example
+
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+.DS_Store
+Thumbs.db
+*.pem
+
+# TypeScript / Next.js generated files
+next-env.d.ts
+*.tsbuildinfo
