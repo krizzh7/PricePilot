@@ -10,12 +10,12 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'PricePilot - Compare Prices Across Retailers',
-  description: 'Compare prices across Amazon, Best Buy, Walmart, Newegg, and more. Find the best deals instantly.',
-  keywords: ['price comparison', 'shopping', 'deals', 'e-commerce', 'retail'],
+  title: 'PricePilot — Compare prices, buy with confidence',
+  description: 'Compare product prices from trusted retailers in one place.',
+  keywords: ['price comparison', 'shopping', 'deals', 'retail'],
   openGraph: {
-    title: 'PricePilot - Compare Prices Across Retailers',
-    description: 'Compare prices across Amazon, Best Buy, Walmart, Newegg, and more.',
+    title: 'PricePilot — Compare prices, buy with confidence',
+    description: 'Compare product prices from trusted retailers in one place.',
     type: 'website',
   },
 };
@@ -26,14 +26,10 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={inter.variable}>
-      <body className="min-h-screen bg-slate-50 antialiased">
+    <html lang="en" className={inter.variable} suppressHydrationWarning>
+      <body className="min-h-screen bg-background font-sans text-foreground antialiased">
         <Providers>{children}</Providers>
       </body>
     </html>

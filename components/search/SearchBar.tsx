@@ -1,9 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ArrowRight, LoaderCircle, Search } from 'lucide-react';
+import { ArrowRight, LoaderCircle, Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
 import { autocompleteCatalog } from '@/data/autocomplete-catalog';
 import { AutocompleteDropdown } from './AutocompleteDropdown';
 
@@ -76,6 +75,7 @@ export function SearchBar({ initialQuery = '', onSearch, isLoading = false }: Se
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Escape') {
+      inputRef.current?.blur();
       setShowDropdown(false);
       setHighlightedIndex(-1);
       return;
@@ -94,6 +94,14 @@ export function SearchBar({ initialQuery = '', onSearch, isLoading = false }: Se
     }
   };
 
+  const clearInput = () => {
+    setQuery('');
+    setError('');
+    setSuggestions([]);
+    setShowDropdown(false);
+    inputRef.current?.focus();
+  };
+
   return (
     <form
       ref={wrapperRef}
@@ -105,54 +113,82 @@ export function SearchBar({ initialQuery = '', onSearch, isLoading = false }: Se
       role="search"
       noValidate
     >
-      <div className="flex items-stretch gap-2">
-        <div className="relative min-w-0 flex-1">
-          <Search className="pointer-events-none absolute left-4 top-1/2 z-10 h-5 w-5 -translate-y-1/2 text-slate-400" aria-hidden="true" />
-          <Input
-            ref={inputRef}
-            type="search"
-            value={query}
-            onChange={(event) => {
-              setQuery(event.target.value);
-              setError('');
-            }}
-            onFocus={() => {
-              if (suggestions.length > 0) setShowDropdown(true);
-            }}
-            onKeyDown={handleKeyDown}
-            placeholder="Search a product, like Lenovo Legion"
-            className="h-14 rounded-md pl-12 pr-4 text-base shadow-sm sm:text-lg"
-            error={error}
-            autoComplete="off"
-            spellCheck={false}
-            maxLength={200}
-            aria-autocomplete="list"
-            aria-expanded={showDropdown}
-            aria-controls="product-suggestions"
-            aria-activedescendant={highlightedIndex >= 0 ? `suggestion-${highlightedIndex}` : undefined}
-          />
-          {showDropdown && (
-            <AutocompleteDropdown
-              suggestions={suggestions}
-              highlightedIndex={highlightedIndex}
-              onSelect={selectSuggestion}
-              onHighlight={setHighlightedIndex}
-              onClose={() => setShowDropdown(false)}
-              inputRef={inputRef}
-            />
-          )}
+      {/* Outer container with glowing focus ring */}
+      <div className="group relative flex items-center rounded-2xl border border-border/80 bg-card p-1.5 shadow-lg shadow-black/5 ring-1 ring-border/50 transition-all duration-300 focus-within:border-emerald-500 focus-within:ring-4 focus-within:ring-emerald-500/20 focus-within:shadow-xl focus-within:shadow-emerald-500/10 hover:border-border hover:shadow-xl hover:shadow-black/5">
+        <div className="pointer-events-none pl-3.5 pr-1 text-muted-foreground transition-colors group-focus-within:text-emerald-600 dark:group-focus-within:text-emerald-400">
+          <Search className="h-5 w-5" aria-hidden="true" />
         </div>
+
+        <input
+          ref={inputRef}
+          type="search"
+          value={query}
+          onChange={(event) => {
+            setQuery(event.target.value);
+            setError('');
+          }}
+          onFocus={() => {
+            if (suggestions.length > 0) setShowDropdown(true);
+          }}
+          onKeyDown={handleKeyDown}
+          placeholder="Search products, e.g. Lenovo Legion, AirPods Pro..."
+          className="h-12 w-full bg-transparent px-3 text-base text-foreground placeholder:text-muted-foreground/70 focus:outline-none sm:text-base"
+          autoComplete="off"
+          spellCheck={false}
+          maxLength={200}
+          aria-autocomplete="list"
+          aria-expanded={showDropdown}
+          aria-controls="product-suggestions"
+          aria-activedescendant={highlightedIndex >= 0 ? `suggestion-${highlightedIndex}` : undefined}
+        />
+
+        {/* Clear Button */}
+        {query && (
+          <button
+            type="button"
+            onClick={clearInput}
+            className="mr-2 flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            aria-label="Clear search input"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        )}
+
+        {/* Compare / Search Button */}
         <Button
           type="submit"
-          size="lg"
+          size="md"
           disabled={isLoading}
-          className="h-14 shrink-0 rounded-md px-4 sm:px-6"
-          aria-label="Search products"
+          className="btn-tactile h-11 shrink-0 rounded-xl px-5 text-sm font-semibold shadow-sm"
+          aria-label="Search prices"
         >
-          {isLoading ? <LoaderCircle className="h-5 w-5 animate-spin" aria-hidden="true" /> : <ArrowRight className="h-5 w-5" aria-hidden="true" />}
-          <span className="hidden sm:inline">Search</span>
+          {isLoading ? (
+            <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" />
+          ) : (
+            <>
+              <span>Compare</span>
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </>
+          )}
         </Button>
+
+        {showDropdown && (
+          <AutocompleteDropdown
+            suggestions={suggestions}
+            highlightedIndex={highlightedIndex}
+            onSelect={selectSuggestion}
+            onHighlight={setHighlightedIndex}
+            onClose={() => setShowDropdown(false)}
+            inputRef={inputRef}
+          />
+        )}
       </div>
+
+      {error && (
+        <p className="mt-2 text-left text-xs font-medium text-destructive px-2" role="alert">
+          {error}
+        </p>
+      )}
     </form>
   );
 }

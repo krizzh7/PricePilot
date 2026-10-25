@@ -1,7 +1,10 @@
 'use client';
 
-import { ExternalLink, Star, Truck } from 'lucide-react';
+import { useState } from 'react';
+import { ExternalLink, Star, Truck, Check, Store } from 'lucide-react';
 import type { ParsedResult } from '@/types/search';
+import { Button } from '@/components/ui/Button';
+import { useCompare } from '@/context/CompareContext';
 
 interface ComparisonCardProps {
   result: ParsedResult;
@@ -9,29 +12,103 @@ interface ComparisonCardProps {
 }
 
 export function ComparisonCard({ result, index = 0 }: ComparisonCardProps) {
-  const rating = result.rating === null ? 'Rating not listed' : `${result.rating.toFixed(1)}${result.reviewCount === null ? '' : ` · ${result.reviewCount.toLocaleString()} reviews`}`;
+  const [imgError, setImgError] = useState(false);
+  const { toggleCompare, isComparing } = useCompare();
+  const itemId = result.productUrl || `${result.retailer}-${result.price}`;
+  const comparing = isComparing(itemId);
+  const isLowest = index === 0;
+  const rating =
+    result.rating === null
+      ? 'No rating'
+      : `${result.rating.toFixed(1)}${result.reviewCount === null ? '' : ` (${result.reviewCount.toLocaleString()})`}`;
 
   return (
-    <article className="border border-slate-200 bg-white p-4" aria-label={`${result.retailer} offer, ${result.priceFormatted}`}>
+    <article
+      className={`rounded-2xl border p-5 transition-all ${
+        isLowest
+          ? 'border-emerald-500/50 bg-card shadow-md ring-1 ring-emerald-500/20'
+          : 'border-border/80 bg-card shadow-xs'
+      }`}
+      aria-label={`${result.retailer} offer, ${result.priceFormatted}`}
+    >
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-start gap-3">
-          <img src={result.faviconUrl} alt="" className="mt-0.5 h-5 w-5 shrink-0 rounded-sm" loading="lazy" />
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-border bg-muted/60 p-1">
+            {!imgError && result.faviconUrl ? (
+              <img
+                src={result.faviconUrl}
+                alt=""
+                className="h-full w-full object-contain"
+                onError={() => setImgError(true)}
+                loading="lazy"
+              />
+            ) : (
+              <Store className="h-3.5 w-3.5 text-muted-foreground" />
+            )}
+          </div>
           <div className="min-w-0">
-            <h2 className="font-semibold text-slate-950">{result.retailer}</h2>
-            <p className="mt-1 line-clamp-2 text-xs leading-5 text-slate-500">{result.title}</p>
+            <h4 className="font-semibold text-foreground text-sm">{result.retailer}</h4>
+            <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">{result.title}</p>
           </div>
         </div>
-        {index === 0 && <span className="shrink-0 border border-emerald-200 bg-emerald-50 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-emerald-900">Lowest</span>}
+        {isLowest && (
+          <span className="shrink-0 inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-300">
+            <Check className="h-3 w-3 stroke-[3]" />
+            Lowest
+          </span>
+        )}
       </div>
-      <p className="mt-5 text-2xl font-semibold tabular-nums tracking-tight text-slate-950">{result.priceFormatted}</p>
-      <div className="mt-4 space-y-2 border-t border-slate-100 pt-3 text-sm text-slate-600">
-        <p className="flex items-center gap-2"><Star className="h-4 w-4 shrink-0 text-amber-500" aria-hidden="true" />{rating}</p>
-        <p className="flex items-center gap-2"><Truck className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />{result.shippingText}</p>
-        <p className="text-xs text-slate-500">Availability: {result.availability}</p>
+
+      <div className="mt-4 flex items-baseline justify-between">
+        <div className="text-2xl font-bold tracking-tight text-foreground font-mono">
+          {result.priceFormatted}
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="text-xs text-muted-foreground">{result.availability || 'In Stock'}</div>
+          <button
+            type="button"
+            onClick={() =>
+              toggleCompare({
+                id: itemId,
+                title: result.title,
+                price: result.priceFormatted,
+                retailer: result.retailer,
+                faviconUrl: result.faviconUrl,
+                productUrl: result.productUrl,
+                availability: result.availability,
+                shippingText: result.shippingText,
+                rating: result.rating,
+                reviewCount: result.reviewCount,
+              })
+            }
+            className={`pill-tactile rounded-lg px-2 py-0.5 text-[11px] font-semibold border transition-all ${
+              comparing
+                ? 'border-emerald-500 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                : 'border-border bg-card text-muted-foreground hover:text-foreground hover:bg-muted'
+            }`}
+          >
+            {comparing ? '✓ Compared' : '+ Compare'}
+          </button>
+        </div>
       </div>
-      <a href={result.productUrl} target="_blank" rel="noopener noreferrer" className="mt-5 flex min-h-11 items-center justify-center gap-2 bg-emerald-800 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-emerald-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700 focus-visible:ring-offset-2">
-        View deal <ExternalLink className="h-4 w-4" aria-hidden="true" />
-      </a>
+
+      <div className="mt-3 space-y-1.5 border-t border-border/50 pt-3 text-xs text-muted-foreground">
+        <p className="flex items-center gap-1.5">
+          <Star className="h-3.5 w-3.5 shrink-0 fill-amber-400 text-amber-400" aria-hidden="true" />
+          <span>{rating}</span>
+        </p>
+        <p className="flex items-center gap-1.5">
+          <Truck className="h-3.5 w-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+          <span>{result.shippingText || 'Free standard shipping'}</span>
+        </p>
+      </div>
+
+      <Button asChild variant={isLowest ? 'primary' : 'secondary'} size="md" className="mt-4 w-full justify-center">
+        <a href={result.productUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-1.5">
+          <span>View Deal</span>
+          <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+        </a>
+      </Button>
     </article>
   );
 }

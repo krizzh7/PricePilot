@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
-import { Loader2, Mail, Lock, AlertCircle } from 'lucide-react';
+import { Mail, Lock, AlertCircle } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 
@@ -35,7 +35,7 @@ export function SignUpForm({ onSwitchToLogin }: SignUpFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const emailError = validateEmail(email);
     const passwordError = validatePassword(password);
     const confirmError = password !== confirmPassword ? 'Passwords do not match' : undefined;
@@ -77,12 +77,10 @@ export function SignUpForm({ onSwitchToLogin }: SignUpFormProps) {
     setErrors((prev) => ({ ...prev, [field]: error }));
   };
 
-  const isValid = email && password && confirmPassword && password === confirmPassword && !validateEmail(email) && !validatePassword(password);
-
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <Input
-        label="Email Address"
+        label="Email address"
         type="email"
         autoComplete="email"
         value={email}
@@ -91,10 +89,10 @@ export function SignUpForm({ onSwitchToLogin }: SignUpFormProps) {
         error={errors.email}
         placeholder="you@example.com"
         disabled={isSubmitting}
-        icon={<Mail className="w-5 h-5" />}
+        icon={<Mail className="w-4 h-4" />}
       />
       <Input
-        label="Password"
+        label="Create password"
         type="password"
         autoComplete="new-password"
         value={password}
@@ -103,40 +101,40 @@ export function SignUpForm({ onSwitchToLogin }: SignUpFormProps) {
         error={errors.password}
         placeholder="At least 8 characters"
         disabled={isSubmitting}
-        icon={<Lock className="w-5 h-5" />}
+        icon={<Lock className="w-4 h-4" />}
       />
       <Input
-        label="Confirm Password"
+        label="Confirm password"
         type="password"
         autoComplete="new-password"
         value={confirmPassword}
         onChange={(e) => setConfirmPassword(e.target.value)}
         onBlur={() => handleBlur('confirmPassword')}
         error={errors.confirmPassword}
-        placeholder="Confirm your password"
+        placeholder="Re-enter your password"
         disabled={isSubmitting}
-        icon={<Lock className="w-5 h-5" />}
+        icon={<Lock className="w-4 h-4" />}
       />
 
       {errors.form && (
-        <div className="flex items-center gap-2 text-sm text-red-500 bg-red-50 p-3 rounded-lg">
+        <div className="flex items-center gap-2 text-xs text-destructive bg-destructive/10 border border-destructive/20 p-3 rounded-xl">
           <AlertCircle className="w-4 h-4 flex-shrink-0" />
           <span>{errors.form}</span>
         </div>
       )}
 
-      <Button type="submit" className="w-full" size="lg" isLoading={isSubmitting}>
-        Create Account
+      <Button type="submit" className="w-full mt-2" size="lg" isLoading={isSubmitting}>
+        Create Free Account
       </Button>
 
-      <p className="text-center text-sm text-slate-600">
+      <p className="text-center text-xs text-muted-foreground pt-1">
         Already have an account?{' '}
         <button
           type="button"
           onClick={onSwitchToLogin}
-          className="text-emerald-600 hover:underline font-medium"
+          className="text-emerald-600 dark:text-emerald-400 hover:underline font-semibold"
         >
-          Log in
+          Sign in
         </button>
       </p>
     </form>

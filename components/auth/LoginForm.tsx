@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
-import { Loader2, Mail, Lock, AlertCircle } from 'lucide-react';
+import { Mail, Lock, AlertCircle } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 
@@ -33,7 +33,7 @@ export function LoginForm({ onSwitchToSignup }: LoginFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const emailError = validateEmail(email);
     const passwordError = validatePassword(password);
 
@@ -73,12 +73,10 @@ export function LoginForm({ onSwitchToSignup }: LoginFormProps) {
     setErrors((prev) => ({ ...prev, [field]: error }));
   };
 
-  const isValid = email && password && !validateEmail(email);
-
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <Input
-        label="Email Address"
+        label="Email address"
         type="email"
         autoComplete="email"
         value={email}
@@ -87,7 +85,7 @@ export function LoginForm({ onSwitchToSignup }: LoginFormProps) {
         error={errors.email}
         placeholder="you@example.com"
         disabled={isSubmitting}
-        icon={<Mail className="w-5 h-5" />}
+        icon={<Mail className="w-4 h-4" />}
       />
       <Input
         label="Password"
@@ -97,30 +95,30 @@ export function LoginForm({ onSwitchToSignup }: LoginFormProps) {
         onChange={(e) => setPassword(e.target.value)}
         onBlur={() => handleBlur('password')}
         error={errors.password}
-        placeholder="Your password"
+        placeholder="Enter your password"
         disabled={isSubmitting}
-        icon={<Lock className="w-5 h-5" />}
+        icon={<Lock className="w-4 h-4" />}
       />
 
       {errors.form && (
-        <div className="flex items-center gap-2 text-sm text-red-500 bg-red-50 p-3 rounded-lg">
+        <div className="flex items-center gap-2 text-xs text-destructive bg-destructive/10 border border-destructive/20 p-3 rounded-xl">
           <AlertCircle className="w-4 h-4 flex-shrink-0" />
           <span>{errors.form}</span>
         </div>
       )}
 
-      <Button type="submit" className="w-full" size="lg" isLoading={isSubmitting}>
-        Log In
+      <Button type="submit" className="w-full mt-2" size="lg" isLoading={isSubmitting}>
+        Sign In
       </Button>
 
-      <p className="text-center text-sm text-slate-600">
-        Need an account?{' '}
+      <p className="text-center text-xs text-muted-foreground pt-1">
+        Don&apos;t have an account?{' '}
         <button
           type="button"
           onClick={onSwitchToSignup}
-          className="text-emerald-600 hover:underline font-medium"
+          className="text-emerald-600 dark:text-emerald-400 hover:underline font-semibold"
         >
-          Sign up
+          Create one now
         </button>
       </p>
     </form>
