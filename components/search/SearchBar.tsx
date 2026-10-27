@@ -35,7 +35,9 @@ export function SearchBar({ initialQuery = '', onSearch, isLoading = false }: Se
       .filter((product) => product.toLocaleLowerCase().includes(normalized))
       .slice(0, 8);
     setSuggestions(matches);
-    setShowDropdown(matches.length > 0);
+    // Do not pop the list open on first paint (e.g. a deep-linked search page);
+    // only show it while the field actually has focus.
+    setShowDropdown(matches.length > 0 && document.activeElement === inputRef.current);
     setHighlightedIndex(-1);
   }, []);
 
@@ -102,6 +104,32 @@ export function SearchBar({ initialQuery = '', onSearch, isLoading = false }: Se
     inputRef.current?.focus();
   };
 
+  // Global shortcut: "/" or Cmd/Ctrl+K focuses the search field
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.metaKey || event.ctrlKey) {
+        if (event.key.toLowerCase() === 'k') {
+          event.preventDefault();
+          inputRef.current?.focus();
+        }
+        return;
+      }
+      if (event.key !== '/') return;
+      const target = event.target as HTMLElement | null;
+      const isTyping =
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target instanceof HTMLSelectElement ||
+        target?.isContentEditable;
+      if (!isTyping) {
+        event.preventDefault();
+        inputRef.current?.focus();
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, []);
+
   return (
     <form
       ref={wrapperRef}
@@ -114,7 +142,7 @@ export function SearchBar({ initialQuery = '', onSearch, isLoading = false }: Se
       noValidate
     >
       {/* Outer container with glowing focus ring */}
-      <div className="group relative flex items-center rounded-2xl border border-border/80 bg-card p-1.5 shadow-lg shadow-black/5 ring-1 ring-border/50 transition-all duration-300 focus-within:border-emerald-500 focus-within:ring-4 focus-within:ring-emerald-500/20 focus-within:shadow-xl focus-within:shadow-emerald-500/10 hover:border-border hover:shadow-xl hover:shadow-black/5">
+      <div className="group relative flex items-center rounded-2xl border border-border bg-card p-1.5 shadow-card transition-all duration-200 hover:border-border hover:shadow-lift focus-within:border-emerald-500/60 focus-within:shadow-lift focus-within:ring-2 focus-within:ring-emerald-500/25">
         <div className="pointer-events-none pl-3.5 pr-1 text-muted-foreground transition-colors group-focus-within:text-emerald-600 dark:group-focus-within:text-emerald-400">
           <Search className="h-5 w-5" aria-hidden="true" />
         </div>
@@ -136,9 +164,11 @@ export function SearchBar({ initialQuery = '', onSearch, isLoading = false }: Se
           autoComplete="off"
           spellCheck={false}
           maxLength={200}
+          role="combobox"
           aria-autocomplete="list"
           aria-expanded={showDropdown}
-          aria-controls="product-suggestions"
+          aria-haspopup="listbox"
+          aria-controls={showDropdown ? 'product-suggestions' : undefined}
           aria-activedescendant={highlightedIndex >= 0 ? `suggestion-${highlightedIndex}` : undefined}
         />
 

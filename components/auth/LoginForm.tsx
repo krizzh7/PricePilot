@@ -6,6 +6,7 @@ import { signIn } from 'next-auth/react';
 import { Mail, Lock, AlertCircle } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
+import { EMAIL_REGEX } from '@/lib/validations';
 
 interface LoginFormProps {
   onSwitchToSignup: () => void;
@@ -20,7 +21,7 @@ export function LoginForm({ onSwitchToSignup }: LoginFormProps) {
 
   const validateEmail = (value: string) => {
     if (!value) return 'Email is required';
-    if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value)) {
+    if (!EMAIL_REGEX.test(value)) {
       return 'Please enter a valid email address';
     }
     return undefined;

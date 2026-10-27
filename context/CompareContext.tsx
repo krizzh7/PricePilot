@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useMemo } from 'react';
 import { useToast } from '@/components/ui/Toast';
 
 export interface CompareProductItem {
@@ -41,6 +41,12 @@ export function CompareProvider({ children }: { children: React.ReactNode }) {
   const [compareItems, setCompareItems] = useState<CompareProductItem[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { toast } = useToast();
+
+  // If every item is removed while the modal is open, close it so that adding
+  // a new offer later does not pop the modal open unexpectedly.
+  useEffect(() => {
+    if (compareItems.length === 0) setIsModalOpen(false);
+  }, [compareItems.length]);
 
   const isComparing = useCallback(
     (id: string) => compareItems.some((item) => item.id === id),

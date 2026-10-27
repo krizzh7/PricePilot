@@ -8,7 +8,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     CredentialsProvider({
       name: 'credentials',
       credentials: {
-        email: { label: 'Gmail Address', type: 'email' },
+        email: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
         mode: { label: 'Mode', type: 'hidden' },
       },
@@ -51,4 +51,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
   },
   secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
+  // Auth.js v5 requires this when self-hosting (Vercel sets AUTH_TRUST_HOST automatically).
+  trustHost: true,
 });

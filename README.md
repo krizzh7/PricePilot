@@ -45,11 +45,11 @@ cp .env.example .env.local
 Edit `.env.local` and add:
 
 ```
-NEXT_PUBLIC_SERPAPI_KEY=your_serpapi_key_here
+SERPAPI_KEY=your_serpapi_key_here
 AUTH_SECRET=your_auth_secret
-NEXTAUTH_URL=http://localhost:3000
 ```
 
+<<<<<<< HEAD
 <<<<<<< Updated upstream
 =======
 `NEXTAUTH_URL` is optional. Leave it unset in local development: Auth.js v5
@@ -59,6 +59,13 @@ URL's path as the auth base path. Setting it to a bare origin breaks server-side
 session reads (see Troubleshooting).
 
 >>>>>>> Stashed changes
+=======
+`NEXTAUTH_URL` is optional. Leave it unset in local development: Auth.js v5
+derives the URL from the request. If you do set it, include the auth base path
+(e.g. `NEXTAUTH_URL=http://localhost:3000/api/auth`), because the beta uses the
+URL's path as the auth base path.
+
+>>>>>>> 208ea39c4e993acfad398782b1b287fc16bd8a91
 Get a free SerpApi key at https://serpapi.com
 
 Generate an auth secret:
