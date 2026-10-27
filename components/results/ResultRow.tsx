@@ -3,20 +3,21 @@
 import { useState } from 'react';
 import { ExternalLink, Star, Truck, Store, Check } from 'lucide-react';
 import type { ParsedResult } from '@/types/search';
+import { isInStock } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
 
 interface ResultRowProps {
   result: ParsedResult;
-  index: number;
+  isLowest?: boolean;
 }
 
-export function ResultRow({ result, index }: ResultRowProps) {
+export function ResultRow({ result, isLowest = false }: ResultRowProps) {
   const [imgError, setImgError] = useState(false);
-  const isLowest = index === 0;
   const rating =
     result.rating === null
       ? 'No rating'
       : `${result.rating.toFixed(1)}${result.reviewCount === null ? '' : ` (${result.reviewCount.toLocaleString()})`}`;
+  const inStock = isInStock(result.availability);
 
   return (
     <tr
@@ -81,14 +82,14 @@ export function ResultRow({ result, index }: ResultRowProps) {
       <td className="max-w-[200px] px-5 py-4">
         <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
           <Truck className="h-3.5 w-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
-          <span className="truncate">{result.shippingText || 'Free standard shipping'}</span>
+          <span className="truncate">{result.shippingText || 'Shipping info at retailer'}</span>
         </span>
       </td>
 
       {/* Availability */}
       <td className="whitespace-nowrap px-5 py-4 text-xs font-medium text-muted-foreground">
         <span className="inline-flex items-center gap-1.5">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+          <span className={`h-1.5 w-1.5 rounded-full ${inStock ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
           {result.availability || 'In Stock'}
         </span>
       </td>

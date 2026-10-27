@@ -16,7 +16,7 @@
     --secondary: 210 28% 95%;
     --secondary-foreground: 222 47% 15%;
     --muted: 210 25% 94%;
-    --muted-foreground: 215 16% 45%;
+    --muted-foreground: 215 15% 44%;
     --accent: 152 70% 94%;
     --accent-foreground: 161 94% 20%;
     --destructive: 0 84% 60%;
@@ -24,10 +24,7 @@
     --border: 214 24% 90%;
     --input: 214 24% 86%;
     --ring: 160 84% 34%;
-    --radius: 0.75rem; /* 12px */
-
-    /* Custom Emerald Cursor */
-    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 24 24'%3E%3Cpath fill='%23059669' stroke='%23ffffff' stroke-width='1.5' stroke-linejoin='round' d='M4.5 2.5v17.2c0 .4.5.6.8.3l4.5-4.5a.5.5 0 0 1 .35-.15h6.3a.5.5 0 0 0 .35-.85L5.3 2.15a.5.5 0 0 0-.8.35z'/%3E%3C/svg%3E"), auto;
+    --radius: 0.75rem;
   }
 
   .dark {
@@ -51,18 +48,6 @@
     --border: 217 25% 18%;
     --input: 217 25% 22%;
     --ring: 160 76% 45%;
-
-    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 24 24'%3E%3Cpath fill='%2310b981' stroke='%230f172a' stroke-width='1.5' stroke-linejoin='round' d='M4.5 2.5v17.2c0 .4.5.6.8.3l4.5-4.5a.5.5 0 0 1 .35-.15h6.3a.5.5 0 0 0 .35-.85L5.3 2.15a.5.5 0 0 0-.8.35z'/%3E%3C/svg%3E"), auto;
-  }
-
-  /* Interactive Elements Hover Cursor */
-  a, button, [role="button"], input[type="submit"], input[type="button"], select, summary, .cursor-pointer {
-    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 24 24'%3E%3Cpath fill='%2310b981' stroke='%23ffffff' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' d='M8 2a1.5 1.5 0 0 0-1.5 1.5v8.5a.5.5 0 0 1-1 0V5a1.5 1.5 0 0 0-3 0v9.5a7 7 0 0 0 14 0V9.5A1.5 1.5 0 0 0 15 8a1.5 1.5 0 0 0-1.5 1.5v1a.5.5 0 0 1-1 0v-2A1.5 1.5 0 0 0 11 7a1.5 1.5 0 0 0-1.5 1.5v1a.5.5 0 0 1-1 0V3.5A1.5 1.5 0 0 0 8 2z'/%3E%3C/svg%3E"), pointer !important;
-  }
-
-  /* Caret & Text Selection */
-  input, textarea, [contenteditable="true"] {
-    caret-color: #10b981;
   }
 
   * {
@@ -71,6 +56,8 @@
 
   html {
     @apply scroll-smooth font-sans antialiased;
+    /* Balanced, readable measure for paragraphs that opt in */
+    scroll-padding-top: 5rem;
   }
 
   body {
@@ -80,88 +67,37 @@
   ::selection {
     @apply bg-emerald-500/25 text-emerald-950 dark:text-emerald-200;
   }
-}
 
-/* 1. Shimmer Keyframe Animation */
-@keyframes shimmerWave {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
+  /* Numeric alignment for prices, stats and timestamps */
+  .tnum {
+    font-variant-numeric: tabular-nums;
   }
 }
 
-.shimmer-pulse {
-  background: linear-gradient(
-    90deg,
-    hsl(var(--muted)) 0%,
-    hsl(var(--secondary)) 35%,
-    hsl(var(--muted) / 0.8) 70%,
-    hsl(var(--muted)) 100%
-  );
-  background-size: 250% 100%;
-  animation: shimmerWave 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+@layer utilities {
+  /* Subtle engineered dot texture — static, GPU-cheap */
+  .bg-dots {
+    background-image: radial-gradient(
+      hsl(var(--foreground) / 0.055) 1px,
+      transparent 1px
+    );
+    background-size: 22px 22px;
+    -webkit-mask-image: radial-gradient(ellipse 75% 70% at 50% 0%, black 25%, transparent 78%);
+    mask-image: radial-gradient(ellipse 75% 70% at 50% 0%, black 25%, transparent 78%);
+  }
+
+  .bg-dots-b {
+    background-image: radial-gradient(
+      hsl(var(--foreground) / 0.05) 1px,
+      transparent 1px
+    );
+    background-size: 22px 22px;
+    -webkit-mask-image: radial-gradient(ellipse 70% 80% at 50% 100%, black 20%, transparent 72%);
+    mask-image: radial-gradient(ellipse 70% 80% at 50% 100%, black 20%, transparent 72%);
+  }
 }
 
-/* 2. Layered SaaS Drop Shadows & Frosted Glass */
-.navbar-frosted {
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  background-color: hsl(var(--background) / 0.8);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid hsl(var(--border) / 0.7);
-}
-
-.shadow-saas {
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
-  border: 1px solid hsl(var(--border) / 0.8);
-  border-radius: 12px;
-}
-
-.shadow-saas-lg {
-  box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.07), 0 10px 15px -5px rgba(0, 0, 0, 0.03);
-  border: 1px solid hsl(var(--border) / 0.8);
-  border-radius: 16px;
-}
-
-/* 3. Tactile Micro-Interactions (200ms cubic-bezier) */
-.btn-tactile {
-  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.btn-tactile:hover {
-  transform: translateY(-1px);
-  filter: brightness(1.04);
-}
-
-.btn-tactile:active {
-  transform: translateY(0.5px) scale(0.985);
-}
-
-.card-tactile {
-  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.card-tactile:hover {
-  transform: translateY(-2px);
-}
-
-.pill-tactile {
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.pill-tactile:hover {
-  transform: scale(1.05);
-}
-
-.pill-tactile:active {
-  transform: scale(0.96);
-}
-
-/* 4. Toast Notifications Animation */
+/* Toast / mobile drawer entrance (single, purposeful motion, 250ms) */
 @keyframes toastSlideIn {
   0% {
     opacity: 0;
@@ -175,6 +111,92 @@
 
 .animate-slide-in {
   animation: toastSlideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes drawerIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-drawer-in {
+  animation: drawerIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Layered elevation for floating surfaces (dock, modal, hero preview) */
+.shadow-saas {
+  box-shadow:
+    0 1px 2px rgb(15 23 42 / 0.05),
+    0 12px 32px -16px rgb(15 23 42 / 0.14);
+  border-radius: 12px;
+}
+
+.shadow-saas-lg {
+  box-shadow:
+    0 1px 2px rgb(15 23 42 / 0.04),
+    0 2px 6px rgb(15 23 42 / 0.03),
+    0 28px 64px -28px rgb(15 23 42 / 0.22);
+  border-radius: 16px;
+}
+
+/* Micro-interaction primitives — 200ms, restrained transforms */
+.btn-tactile {
+  transition:
+    transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-tactile:hover {
+  transform: translateY(-1px);
+}
+
+.btn-tactile:active {
+  transform: translateY(0) scale(0.985);
+}
+
+.card-tactile {
+  transition:
+    transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-tactile:hover {
+  transform: translateY(-2px);
+}
+
+.pill-tactile {
+  transition:
+    background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Skeleton loading shimmer (used by table rows, cards and product skeletons) */
+@keyframes shimmerWave {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--muted)) 25%,
+    hsl(var(--secondary)) 50%,
+    hsl(var(--muted)) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmerWave 1.6s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -2,7 +2,7 @@
 
 import React, { useState, useRef } from 'react';
 import Link from 'next/link';
-import { ArrowRight, Check, ShieldCheck, Zap, TrendingDown, Info, ExternalLink } from 'lucide-react';
+import { ArrowRight, Check, ShieldCheck, Zap, TrendingDown } from 'lucide-react';
 import { NumberTicker } from '@/components/ui/NumberTicker';
 import { useCompare } from '@/context/CompareContext';
 
@@ -104,7 +104,7 @@ export function LiveComparisonPreview() {
         {/* Highlighted Emerald Savings Pill with Animated Ticker */}
         <div className="self-start sm:self-auto inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-[#ecfdf5] px-4 py-1.5 text-xs sm:text-sm font-bold text-[#059669] shadow-xs dark:bg-emerald-950/50 dark:border-emerald-500/30 dark:text-emerald-300">
           <Check className="h-4 w-4 stroke-[3]" />
-          <NumberTicker value={70} prefix="Save up to $" suffix=".00" duration={800} />
+          <NumberTicker value={70} prefix="Save up to $" duration={800} />
         </div>
       </div>
 
@@ -118,7 +118,7 @@ export function LiveComparisonPreview() {
               Deal Meter
             </span>
             <span className="font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full text-[11px]">
-              Great Deal (Bottom 22%)
+              Great Deal (Bottom {meterPercentage}%)
             </span>
           </div>
 

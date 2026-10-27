@@ -1,24 +1,25 @@
 'use client';
 
-import { ExternalLink, Star, Truck, Check, Store, Plus } from 'lucide-react';
+import { ExternalLink, Star, Truck, Check, Store } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import type { ParsedResult } from '@/types/search';
 import { useState } from 'react';
 import { useCompare } from '@/context/CompareContext';
+import { getOfferId, isInStock } from '@/lib/utils';
 
 interface ProductCardProps {
   result: ParsedResult;
-  index?: number;
+  isLowest?: boolean;
 }
 
-export function ProductCard({ result, index = 0 }: ProductCardProps) {
+export function ProductCard({ result, isLowest = false }: ProductCardProps) {
   const [imgError, setImgError] = useState(false);
   const { toggleCompare, isComparing } = useCompare();
-  const itemId = result.productUrl || `${result.retailer}-${result.price}`;
+  const itemId = getOfferId(result);
   const comparing = isComparing(itemId);
-  const isLowest = index === 0;
   const ratingText = result.rating === null ? 'No rating' : `${result.rating.toFixed(1)}`;
+  const inStock = isInStock(result.availability);
 
   return (
     <div className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border transition-all duration-300 hover:-translate-y-1 ${
@@ -59,7 +60,7 @@ export function ProductCard({ result, index = 0 }: ProductCardProps) {
               </span>
             </div>
 
-            <Badge variant={isLowest ? 'success' : 'secondary'} className="shrink-0 text-[10px]">
+            <Badge variant={!inStock ? 'warning' : isLowest ? 'success' : 'secondary'} className="shrink-0 text-[10px]">
               {result.availability || 'In Stock'}
             </Badge>
           </div>
@@ -74,7 +75,7 @@ export function ProductCard({ result, index = 0 }: ProductCardProps) {
 
           {/* Ratings & Reviews */}
           <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
-            {result.rating ? (
+            {result.rating !== null ? (
               <span className="flex items-center gap-1 font-medium text-foreground">
                 <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
                 <span>{ratingText}</span>
@@ -82,7 +83,7 @@ export function ProductCard({ result, index = 0 }: ProductCardProps) {
             ) : (
               <span>No reviews</span>
             )}
-            {result.reviewCount ? (
+            {result.reviewCount !== null ? (
               <>
                 <span className="text-muted-foreground/40">•</span>
                 <span>{result.reviewCount.toLocaleString()} reviews</span>
@@ -130,7 +131,7 @@ export function ProductCard({ result, index = 0 }: ProductCardProps) {
 
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-4">
           <Truck className="h-3.5 w-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
-          <span className="truncate">{result.shippingText || 'Free standard shipping'}</span>
+          <span className="truncate">{result.shippingText || 'Shipping info at retailer'}</span>
         </div>
 
         <Button

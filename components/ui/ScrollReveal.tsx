@@ -34,19 +34,32 @@ export function ScrollReveal({
 
     // 2. Play once per session via sessionStorage if an ID is provided
     const sessionKey = id ? `scroll_reveal_${id}` : null;
-    if (sessionKey && sessionStorage.getItem(sessionKey)) {
+    try {
+      if (sessionKey && sessionStorage.getItem(sessionKey)) {
+        setIsVisible(true);
+        return;
+      }
+    } catch {
+      // Storage can be unavailable (private mode); treat it as a fresh visit.
+    }
+
+    // 3. Native IntersectionObserver API (fall back to visible when unsupported)
+    if (typeof IntersectionObserver === 'undefined') {
       setIsVisible(true);
       return;
     }
 
-    // 3. Native IntersectionObserver API
     const observer = new IntersectionObserver(
       (entries) => {
         const [entry] = entries;
         if (entry.isIntersecting) {
           setIsVisible(true);
           if (sessionKey) {
-            sessionStorage.setItem(sessionKey, 'true');
+            try {
+              sessionStorage.setItem(sessionKey, 'true');
+            } catch {
+              // Ignore storage failures; the reveal itself already happened.
+            }
           }
           observer.disconnect();
         }
@@ -67,6 +80,7 @@ export function ScrollReveal({
   return (
     <div
       ref={ref}
+      id={id}
       style={{
         transitionDuration: '550ms',
         transitionDelay: `${totalDelay}ms`,

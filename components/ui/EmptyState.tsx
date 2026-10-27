@@ -53,7 +53,7 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        'mx-auto w-full max-w-lg rounded-2xl border border-border/80 bg-card/95 p-8 sm:p-10 text-center shadow-saas backdrop-blur-xs',
+        'mx-auto w-full max-w-lg rounded-2xl border border-border/80 bg-card/95 p-8 sm:p-10 text-center shadow-saas',
         className
       )}
     >

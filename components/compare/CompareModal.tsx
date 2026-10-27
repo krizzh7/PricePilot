@@ -1,17 +1,49 @@
 'use client';
 
-import React from 'react';
-import { X, ExternalLink, Star, Truck, Check, Store } from 'lucide-react';
+import { useEffect } from 'react';
+import { X, ExternalLink, Star, Store } from 'lucide-react';
 import { useCompare } from '@/context/CompareContext';
 import { Button } from '@/components/ui/Button';
 
+// Tailwind cannot see interpolated class names, so keep the column counts as
+// complete literal class strings.
+const COLUMN_CLASSES: Record<number, string> = {
+  1: 'sm:grid-cols-1',
+  2: 'sm:grid-cols-2',
+  3: 'sm:grid-cols-3',
+};
+
 export function CompareModal() {
   const { compareItems, isModalOpen, setIsModalOpen, removeFromCompare, clearCompare } = useCompare();
+  const isOpen = isModalOpen && compareItems.length > 0;
 
-  if (!isModalOpen || compareItems.length === 0) return null;
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setIsModalOpen(false);
+    };
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isOpen, setIsModalOpen]);
+
+  if (!isOpen) return null;
+
+  const columnClass = COLUMN_CLASSES[Math.min(compareItems.length, 3)] ?? COLUMN_CLASSES[3];
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 sm:p-6" role="dialog" aria-modal="true">
+    <div
+      className="fixed inset-0 z-[120] flex items-center justify-center p-4 sm:p-6"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="compare-modal-title"
+    >
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
@@ -23,7 +55,7 @@ export function CompareModal() {
         {/* Modal Header */}
         <div className="flex items-center justify-between pb-4 border-b border-border/70">
           <div>
-            <h3 className="text-xl font-bold tracking-tight text-foreground">
+            <h3 id="compare-modal-title" className="text-xl font-bold tracking-tight text-foreground">
               Side-by-Side Product Comparison
             </h3>
             <p className="text-xs text-muted-foreground mt-0.5">
@@ -51,7 +83,7 @@ export function CompareModal() {
 
         {/* Comparison Columns Grid */}
         <div className="mt-6 overflow-y-auto flex-1 pr-1">
-          <div className={`grid grid-cols-1 sm:grid-cols-${compareItems.length} gap-4`}>
+          <div className={`grid grid-cols-1 ${columnClass} gap-4`}>
             {compareItems.map((item, idx) => (
               <div
                 key={item.id}
@@ -63,6 +95,7 @@ export function CompareModal() {
                   onClick={() => removeFromCompare(item.id)}
                   className="absolute top-3 right-3 flex h-6 w-6 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                   title="Remove from comparison"
+                  aria-label={`Remove ${item.retailer} from comparison`}
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>
@@ -107,11 +140,11 @@ export function CompareModal() {
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">Shipping</span>
                       <span className="font-medium text-emerald-600 dark:text-emerald-400 truncate max-w-[140px]">
-                        {item.shippingText || 'Free standard'}
+                        {item.shippingText || 'Shipping info at retailer'}
                       </span>
                     </div>
 
-                    {item.rating && (
+                    {typeof item.rating === 'number' && (
                       <div className="flex items-center justify-between">
                         <span className="text-muted-foreground">Rating</span>
                         <span className="font-medium text-foreground flex items-center gap-1">
@@ -126,7 +159,12 @@ export function CompareModal() {
                 {/* View deal button */}
                 <div className="mt-6 pt-3 border-t border-border/50">
                   <Button asChild variant="primary" size="md" className="w-full justify-center btn-tactile">
-                    <a href={item.productUrl || '#'} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5">
+                    <a
+                      href={item.productUrl || `https://www.google.com/search?q=${encodeURIComponent(item.title)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5"
+                    >
                       <span>View at {item.retailer}</span>
                       <ExternalLink className="h-3.5 w-3.5" />
                     </a>

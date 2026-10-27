@@ -5,7 +5,10 @@ export const dynamic = 'force-dynamic';
 export default function SearchPage({
   searchParams,
 }: {
-  searchParams: { q?: string };
+  searchParams: { q?: string | string[] };
 }) {
-  return <SearchExperience initialQuery={searchParams.q?.slice(0, 200) ?? ''} />;
+  // `?q=a&q=b` yields an array; always pass a single bounded string.
+  const rawQuery = Array.isArray(searchParams.q) ? searchParams.q[0] : searchParams.q;
+
+  return <SearchExperience initialQuery={rawQuery?.slice(0, 200) ?? ''} />;
 }

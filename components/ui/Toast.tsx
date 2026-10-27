@@ -67,7 +67,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
       {children}
       {/* Toast Container - fixed bottom right */}
       <div
-        className="fixed bottom-5 right-5 z-[100] flex flex-col gap-2.5 max-w-sm w-full pointer-events-none px-4 sm:px-0"
+        className="fixed bottom-5 right-5 z-[200] flex flex-col gap-2.5 max-w-sm w-full pointer-events-none px-4 sm:px-0"
         aria-live="polite"
       >
         {toasts.map((item) => (

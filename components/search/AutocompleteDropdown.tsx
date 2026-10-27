@@ -43,9 +43,12 @@ export function AutocompleteDropdown({
       role="listbox"
       aria-label="Product suggestions"
     >
-      <div className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+      <li
+        role="presentation"
+        className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground"
+      >
         Popular Products
-      </div>
+      </li>
       {suggestions.slice(0, 8).map((suggestion, index) => {
         const isSelected = index === highlightedIndex;
         return (

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 
 interface NumberTickerProps {
   value: number;
@@ -24,8 +24,16 @@ export function NumberTicker({
   className = '',
 }: NumberTickerProps) {
   const ref = useRef<HTMLSpanElement>(null);
+  const format = useCallback(
+    (n: number) =>
+      n.toLocaleString('en-US', {
+        minimumFractionDigits: decimalPlaces,
+        maximumFractionDigits: decimalPlaces,
+      }),
+    [decimalPlaces]
+  );
   const [displayValue, setDisplayValue] = useState<string>(
-    `${prefix}${(direction === 'down' ? value : 0).toFixed(decimalPlaces)}${suffix}`
+    `${prefix}${format(direction === 'down' ? value : 0)}${suffix}`
   );
   const hasAnimatedRef = useRef(false);
 
@@ -36,51 +44,60 @@ export function NumberTicker({
     // Check prefers-reduced-motion
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (reduceMotion) {
-      setDisplayValue(`${prefix}${value.toFixed(decimalPlaces)}${suffix}`);
+      setDisplayValue(`${prefix}${format(value)}${suffix}`);
       return;
     }
+
+    let timeoutId: number | undefined;
+    let animationFrameId: number | undefined;
+
+    // Allow a new value (or formatting change) to animate again instead of
+    // being frozen on the previous result.
+    hasAnimatedRef.current = false;
 
     const observer = new IntersectionObserver(
       (entries) => {
         const [entry] = entries;
-        if (entry.isIntersecting && !hasAnimatedRef.current) {
-          hasAnimatedRef.current = true;
-          observer.disconnect();
+        if (!entry.isIntersecting || hasAnimatedRef.current) return;
 
-          const timeout = setTimeout(() => {
-            const startTimestamp = performance.now();
-            const startVal = direction === 'down' ? value : 0;
-            const endVal = direction === 'down' ? 0 : value;
+        hasAnimatedRef.current = true;
+        observer.disconnect();
 
-            const step = (now: number) => {
-              const elapsed = now - startTimestamp;
-              const progress = Math.min(elapsed / duration, 1);
-              // Ease-out cubic: 1 - pow(1 - progress, 3)
-              const easeOut = 1 - Math.pow(1 - progress, 3);
-              const current = startVal + (endVal - startVal) * easeOut;
+        timeoutId = window.setTimeout(() => {
+          const startTimestamp = performance.now();
+          const startVal = direction === 'down' ? value : 0;
+          const endVal = direction === 'down' ? 0 : value;
 
-              setDisplayValue(`${prefix}${current.toFixed(decimalPlaces)}${suffix}`);
+          const step = (now: number) => {
+            const elapsed = now - startTimestamp;
+            const progress = Math.min(elapsed / duration, 1);
+            // Ease-out cubic: 1 - pow(1 - progress, 3)
+            const easeOut = 1 - Math.pow(1 - progress, 3);
+            const current = startVal + (endVal - startVal) * easeOut;
 
-              if (progress < 1) {
-                requestAnimationFrame(step);
-              } else {
-                setDisplayValue(`${prefix}${value.toFixed(decimalPlaces)}${suffix}`);
-              }
-            };
+            setDisplayValue(`${prefix}${format(current)}${suffix}`);
 
-            requestAnimationFrame(step);
-          }, delay);
+            if (progress < 1) {
+              animationFrameId = requestAnimationFrame(step);
+            } else {
+              setDisplayValue(`${prefix}${format(value)}${suffix}`);
+            }
+          };
 
-          return () => clearTimeout(timeout);
-        }
+          animationFrameId = requestAnimationFrame(step);
+        }, delay);
       },
       { threshold: 0.2 }
     );
 
     observer.observe(element);
 
-    return () => observer.disconnect();
-  }, [value, direction, delay, duration, decimalPlaces, prefix, suffix]);
+    return () => {
+      observer.disconnect();
+      if (timeoutId !== undefined) window.clearTimeout(timeoutId);
+      if (animationFrameId !== undefined) cancelAnimationFrame(animationFrameId);
+    };
+  }, [value, direction, delay, duration, decimalPlaces, prefix, suffix, format]);
 
   return (
     <span ref={ref} className={className}>

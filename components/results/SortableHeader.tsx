@@ -16,12 +16,15 @@ export function SortableHeader({ field, label, activeField, activeDirection, onS
   const direction = isActive ? activeDirection : 'asc';
 
   return (
-    <th scope="col" className="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+    <th
+      scope="col"
+      aria-sort={isActive ? (direction === 'asc' ? 'ascending' : 'descending') : 'none'}
+      className="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+    >
       <button
         type="button"
         onClick={() => onSort(field)}
         className="group inline-flex items-center gap-1.5 transition-colors hover:text-foreground focus:outline-none focus:ring-2 focus:ring-emerald-500/40 rounded-lg px-1.5 py-0.5 -ml-1.5"
-        aria-sort={isActive ? (direction === 'asc' ? 'ascending' : 'descending') : 'none'}
       >
         <span>{label}</span>
         {isActive ? (

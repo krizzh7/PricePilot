@@ -5,22 +5,23 @@ import { ExternalLink, Star, Truck, Check, Store } from 'lucide-react';
 import type { ParsedResult } from '@/types/search';
 import { Button } from '@/components/ui/Button';
 import { useCompare } from '@/context/CompareContext';
+import { getOfferId, isInStock } from '@/lib/utils';
 
 interface ComparisonCardProps {
   result: ParsedResult;
-  index?: number;
+  isLowest?: boolean;
 }
 
-export function ComparisonCard({ result, index = 0 }: ComparisonCardProps) {
+export function ComparisonCard({ result, isLowest = false }: ComparisonCardProps) {
   const [imgError, setImgError] = useState(false);
   const { toggleCompare, isComparing } = useCompare();
-  const itemId = result.productUrl || `${result.retailer}-${result.price}`;
+  const itemId = getOfferId(result);
   const comparing = isComparing(itemId);
-  const isLowest = index === 0;
   const rating =
     result.rating === null
       ? 'No rating'
       : `${result.rating.toFixed(1)}${result.reviewCount === null ? '' : ` (${result.reviewCount.toLocaleString()})`}`;
+  const inStock = isInStock(result.availability);
 
   return (
     <article
@@ -64,7 +65,9 @@ export function ComparisonCard({ result, index = 0 }: ComparisonCardProps) {
           {result.priceFormatted}
         </div>
         <div className="flex items-center gap-2">
-          <div className="text-xs text-muted-foreground">{result.availability || 'In Stock'}</div>
+          <div className={`text-xs ${inStock ? 'text-muted-foreground' : 'font-medium text-amber-700 dark:text-amber-400'}`}>
+            {result.availability || 'In Stock'}
+          </div>
           <button
             type="button"
             onClick={() =>
@@ -99,7 +102,7 @@ export function ComparisonCard({ result, index = 0 }: ComparisonCardProps) {
         </p>
         <p className="flex items-center gap-1.5">
           <Truck className="h-3.5 w-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
-          <span>{result.shippingText || 'Free standard shipping'}</span>
+          <span>{result.shippingText || 'Shipping info at retailer'}</span>
         </p>
       </div>
 
