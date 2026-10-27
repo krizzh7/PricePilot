@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
 import { ShoppingBag, ArrowLeft } from 'lucide-react';
 import { gsap } from 'gsap';
 import { SignUpForm } from '@/components/auth/SignUpForm';
@@ -11,7 +10,6 @@ import Link from 'next/link';
 
 export default function AuthPage() {
   const [isSignUp, setIsSignUp] = useState(false);
-  const router = useRouter();
   const cardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -45,11 +43,9 @@ export default function AuthPage() {
 
       {/* Center Auth Card */}
       <div className="flex items-center justify-center py-8">
-        <div
+        <section
           ref={cardRef}
           className="w-full max-w-md rounded-3xl border border-border/80 bg-card/90 p-8 shadow-2xl backdrop-blur-xl ring-1 ring-black/5 dark:ring-white/5"
-          role="dialog"
-          aria-modal="true"
           aria-labelledby="auth-title"
         >
           {/* Logo & Headline */}
@@ -105,7 +101,7 @@ export default function AuthPage() {
           <p className="mt-6 text-center text-[11px] text-muted-foreground leading-relaxed">
             By continuing, you agree to PricePilot&apos;s Terms of Service and Privacy Policy. Account data is for demo purposes.
           </p>
-        </div>
+        </section>
       </div>
 
       {/* Footer minimal info */}

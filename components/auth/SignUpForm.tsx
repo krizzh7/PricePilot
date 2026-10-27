@@ -6,6 +6,7 @@ import { signIn } from 'next-auth/react';
 import { Mail, Lock, AlertCircle } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
+import { EMAIL_REGEX, PASSWORD_MIN_LENGTH } from '@/lib/validations';
 
 interface SignUpFormProps {
   onSwitchToLogin: () => void;
@@ -21,7 +22,7 @@ export function SignUpForm({ onSwitchToLogin }: SignUpFormProps) {
 
   const validateEmail = (value: string) => {
     if (!value) return 'Email is required';
-    if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value)) {
+    if (!EMAIL_REGEX.test(value)) {
       return 'Please enter a valid email address';
     }
     return undefined;
@@ -29,7 +30,7 @@ export function SignUpForm({ onSwitchToLogin }: SignUpFormProps) {
 
   const validatePassword = (value: string) => {
     if (!value) return 'Password is required';
-    if (value.length < 8) return 'Password must be at least 8 characters';
+    if (value.length < PASSWORD_MIN_LENGTH) return `Password must be at least ${PASSWORD_MIN_LENGTH} characters`;
     return undefined;
   };
 
@@ -57,7 +58,9 @@ export function SignUpForm({ onSwitchToLogin }: SignUpFormProps) {
       });
 
       if (result?.error) {
-        setErrors({ form: 'Account already exists. Please log in instead.' });
+        setErrors({
+          form: 'Could not create your account. Please try again, or sign in if you already have one.',
+        });
       } else {
         router.push('/');
         router.refresh();

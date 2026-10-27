@@ -1,58 +1,24 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { gsap } from 'gsap';
 import { ComparisonCard } from '@/components/results/ComparisonCard';
 import { ResultRow } from '@/components/results/ResultRow';
 import { SortableHeader } from '@/components/results/SortableHeader';
+import { getLowestPrice } from '@/lib/utils';
 import type { ParsedResult, SortConfig, SortField } from '@/types/search';
 
 interface ComparisonTableProps {
   results: ParsedResult[];
+  sort: SortConfig;
+  onSort: (field: SortField) => void;
   loading?: boolean;
 }
 
-const DEFAULT_DIRECTION: Record<SortField, SortConfig['direction']> = {
-  retailer: 'asc',
-  price: 'asc',
-  rating: 'desc',
-  shipping: 'asc',
-};
-
-function compareKnownValues(a: number | null, b: number | null, direction: SortConfig['direction']) {
-  if (a === null && b === null) return 0;
-  if (a === null) return 1;
-  if (b === null) return -1;
-  return direction === 'asc' ? a - b : b - a;
-}
-
-export function ComparisonTable({ results, loading = false }: ComparisonTableProps) {
-  const [sort, setSort] = useState<SortConfig>({ field: 'price', direction: 'asc' });
+export function ComparisonTable({ results, sort, onSort, loading = false }: ComparisonTableProps) {
   const bodyRef = useRef<HTMLTableSectionElement>(null);
   const firstSort = useRef(true);
-
-  const sorted = useMemo(() => {
-    return [...results].sort((a, b) => {
-      if (sort.field === 'retailer') {
-        const order = a.retailer.localeCompare(b.retailer, undefined, { sensitivity: 'base' });
-        return sort.direction === 'asc' ? order : -order;
-      }
-
-      const left =
-        sort.field === 'price'
-          ? a.price
-          : sort.field === 'rating'
-          ? a.rating
-          : a.shippingDays;
-      const right =
-        sort.field === 'price'
-          ? b.price
-          : sort.field === 'rating'
-          ? b.rating
-          : b.shippingDays;
-      return compareKnownValues(left, right, sort.direction);
-    });
-  }, [results, sort]);
+  const lowestPrice = useMemo(() => getLowestPrice(results), [results]);
 
   useEffect(() => {
     if (firstSort.current) {
@@ -68,18 +34,6 @@ export function ComparisonTable({ results, loading = false }: ComparisonTablePro
     );
   }, [sort]);
 
-  const handleSort = (field: SortField) => {
-    setSort((current) => ({
-      field,
-      direction:
-        current.field === field
-          ? current.direction === 'asc'
-            ? 'desc'
-            : 'asc'
-          : DEFAULT_DIRECTION[field],
-    }));
-  };
-
   return (
     <>
       <div className="hidden overflow-hidden rounded-2xl border border-border/80 bg-card shadow-sm md:block">
@@ -92,28 +46,28 @@ export function ComparisonTable({ results, loading = false }: ComparisonTablePro
                   label="Retailer & Offer"
                   activeField={sort.field}
                   activeDirection={sort.direction}
-                  onSort={handleSort}
+                  onSort={onSort}
                 />
                 <SortableHeader
                   field="price"
                   label="Price"
                   activeField={sort.field}
                   activeDirection={sort.direction}
-                  onSort={handleSort}
+                  onSort={onSort}
                 />
                 <SortableHeader
                   field="rating"
                   label="Rating"
                   activeField={sort.field}
                   activeDirection={sort.direction}
-                  onSort={handleSort}
+                  onSort={onSort}
                 />
                 <SortableHeader
                   field="shipping"
                   label="Shipping"
                   activeField={sort.field}
                   activeDirection={sort.direction}
-                  onSort={handleSort}
+                  onSort={onSort}
                 />
                 <th
                   scope="col"
@@ -143,8 +97,12 @@ export function ComparisonTable({ results, loading = false }: ComparisonTablePro
               </tbody>
             ) : (
               <tbody ref={bodyRef} className="divide-y divide-border/60">
-                {sorted.map((result, index) => (
-                  <ResultRow key={`${result.productUrl}-${index}`} result={result} index={index} />
+                {results.map((result, index) => (
+                  <ResultRow
+                    key={`${result.productUrl}-${index}`}
+                    result={result}
+                    isLowest={result.price === lowestPrice}
+                  />
                 ))}
               </tbody>
             )}
@@ -162,8 +120,12 @@ export function ComparisonTable({ results, loading = false }: ComparisonTablePro
                 <div className="h-10 w-full rounded-xl bg-muted shimmer" />
               </div>
             ))
-          : sorted.map((result, index) => (
-              <ComparisonCard key={`${result.productUrl}-${index}`} result={result} index={index} />
+          : results.map((result, index) => (
+              <ComparisonCard
+                key={`${result.productUrl}-${index}`}
+                result={result}
+                isLowest={result.price === lowestPrice}
+              />
             ))}
       </div>
     </>

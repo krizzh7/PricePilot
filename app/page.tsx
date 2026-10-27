@@ -1,19 +1,21 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
+import { TrendingUp, ArrowRight, CheckCircle2 } from 'lucide-react';
+import Link from 'next/link';
 import { Header } from '@/components/layout/Header';
 import { SearchBar } from '@/components/search/SearchBar';
 import { TrustBadges } from '@/components/marketing/TrustBadges';
 import { HowItWorks } from '@/components/marketing/HowItWorks';
+import { StatsBand } from '@/components/marketing/StatsBand';
+import { SocialProof } from '@/components/marketing/SocialProof';
 import { LiveComparisonPreview } from '@/components/marketing/LiveComparisonPreview';
 import { SiteFooter } from '@/components/layout/SiteFooter';
 import { ScrollReveal } from '@/components/ui/ScrollReveal';
-import { Sparkles, ArrowRight, TrendingUp, UserCheck } from 'lucide-react';
-import Link from 'next/link';
 
 const POPULAR_SEARCHES = [
   'Lenovo Legion',
@@ -31,134 +33,156 @@ export default function HomePage() {
   const heroRef = useRef<HTMLDivElement>(null);
 
   useGSAP(() => {
-    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reduceMotion) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const ctx = gsap.context(() => {
       const els = heroRef.current?.querySelectorAll('[data-hero]');
       if (els?.length) {
         gsap.fromTo(
           els,
-          { y: 24, opacity: 0 },
-          { y: 0, opacity: 1, duration: 0.6, stagger: 0.08, ease: 'power3.out' }
+          { y: 18, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.55, stagger: 0.07, ease: 'power3.out', clearProps: 'transform' }
         );
       }
     }, heroRef);
     return () => ctx.revert();
   }, []);
 
-  const handleQuickSearch = (query: string) => {
-    router.push(`/search?q=${encodeURIComponent(query)}`);
-  };
+  const searchRoute = (q: string) => `/search?q=${encodeURIComponent(q)}`;
 
   return (
-    <div className="min-h-screen bg-background selection:bg-emerald-500/20">
+    <div className="min-h-screen bg-background">
       <Header />
 
       <main>
-        {/* Hero Section */}
-        <section className="relative overflow-hidden pt-12 pb-20 md:pt-20 md:pb-28">
-          {/* Ambient Background Glows */}
-          <div className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 h-[500px] w-[600px] rounded-full bg-emerald-500/10 blur-[120px] dark:bg-emerald-500/15" />
-          <div className="pointer-events-none absolute right-10 top-40 h-[350px] w-[350px] rounded-full bg-teal-500/10 blur-[100px] dark:bg-teal-500/10" />
+        {/* ── Hero ─────────────────────────────────────────────── */}
+        <section className="relative overflow-hidden pt-14 pb-16 md:pt-24 md:pb-24">
+          {/* Background: engineered dot texture + single soft accent glow */}
+          <div aria-hidden="true" className="absolute inset-0 bg-dots" />
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute left-1/2 top-[-140px] h-[420px] w-[680px] -translate-x-1/2 rounded-full bg-emerald-500/[0.08] blur-[110px] dark:bg-emerald-500/[0.1]"
+          />
 
           <div className="container relative z-10">
             <div ref={heroRef} className="mx-auto max-w-3xl text-center">
-              {/* Sybiosme-style Status Pill */}
-              <div data-hero className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-4 py-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400 shadow-xs">
-                <Sparkles className="h-3.5 w-3.5" />
-                <span>Real-Time Google Shopping Comparison</span>
+              {/* Eyebrow */}
+              <div data-hero className="flex justify-center">
+                <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/[0.07] px-3.5 py-1.5 text-xs font-medium text-emerald-700 dark:border-emerald-500/25 dark:bg-emerald-500/10 dark:text-emerald-400">
+                  <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                  Live Google Shopping price intelligence
+                </span>
               </div>
 
-              {/* Main Headline */}
+              {/* Display headline */}
               <h1
                 data-hero
-                className="mt-6 text-4xl font-extrabold tracking-tight text-foreground sm:text-6xl sm:leading-[1.12]"
+                className="mt-7 text-4xl font-semibold leading-[1.08] tracking-tight text-foreground sm:text-5xl md:text-6xl"
               >
-                Find the best deals, <br />
-                <span className="bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-500 bg-clip-text text-transparent dark:from-emerald-400 dark:via-teal-300 dark:to-emerald-400">
-                  never overpay again.
+                The fastest way to pay
+                <br />
+                <span className="bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-600 bg-clip-text text-transparent dark:from-emerald-400 dark:via-teal-300 dark:to-emerald-400">
+                  the lowest price.
                 </span>
               </h1>
 
               {/* Subheadline */}
-              <p data-hero className="mt-5 text-base sm:text-lg text-muted-foreground leading-relaxed max-w-2xl mx-auto">
-                Scan Amazon, Best Buy, Walmart, and authorized retailers side-by-side in seconds. Transparent, fast, and completely free.
+              <p
+                data-hero
+                className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg"
+              >
+                PricePilot scans Amazon, Best Buy, Walmart, and 40+ authorized retailers in
+                real time — so you see every offer side-by-side before you buy.
               </p>
 
-              {/* Pill Search Bar */}
-              <div data-hero className="mt-8 max-w-2xl mx-auto">
-                <SearchBar onSearch={(q) => router.push(`/search?q=${encodeURIComponent(q)}`)} />
+              {/* Search — the primary action, front and center */}
+              <div data-hero className="mx-auto mt-9 max-w-2xl">
+                <SearchBar onSearch={(q) => router.push(searchRoute(q))} />
               </div>
 
-              {/* Trending Tags (Clickable Pills) */}
-              <div data-hero className="mt-5 flex flex-wrap items-center justify-center gap-2 text-xs">
-                <span className="inline-flex items-center gap-1 text-muted-foreground font-medium">
-                  <TrendingUp className="h-3 w-3 text-emerald-600" />
+              {/* Trending queries */}
+              <div data-hero className="mt-6 flex flex-wrap items-center justify-center gap-2">
+                <span className="inline-flex items-center gap-1.5 pr-1 text-xs font-medium text-muted-foreground">
+                  <TrendingUp className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
                   Trending:
                 </span>
                 {POPULAR_SEARCHES.map((item) => (
                   <button
                     key={item}
                     type="button"
-                    onClick={() => handleQuickSearch(item)}
-                    className="pill-tactile rounded-full border border-border/80 bg-card/60 px-3.5 py-1 text-xs font-medium text-foreground/80 hover:bg-muted hover:text-foreground hover:border-emerald-500/40 transition-all shadow-2xs hover:scale-105 active:scale-95"
+                    onClick={() => router.push(searchRoute(item))}
+                    className="pill-tactile rounded-full border border-border/80 bg-card/70 px-3.5 py-1 text-xs font-medium text-foreground/80 hover:border-emerald-500/40 hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50"
                   >
                     {item}
                   </button>
                 ))}
               </div>
 
-              {/* Trust Badges */}
-              <div data-hero className="mt-10">
+              {/* Trust row */}
+              <div data-hero className="mt-11">
                 <TrustBadges />
               </div>
             </div>
 
-            {/* Structured Live Comparison Card with Deal Meter & 30-Day Sparkline */}
-            <ScrollReveal id="hero-live-comparison" delay={150}>
+            {/* Live product preview — proof, not promise */}
+            <ScrollReveal id="hero-live-comparison" delay={120}>
               <LiveComparisonPreview />
             </ScrollReveal>
           </div>
         </section>
 
-        {/* Feature Grid ("How It Works") with Scroll Reveal */}
-        <ScrollReveal id="how-it-works-section" delay={100}>
+        {/* ── Stats ────────────────────────────────────────────── */}
+        <ScrollReveal id="stats-band" delay={60}>
+          <StatsBand />
+        </ScrollReveal>
+
+        {/* ── How it works ─────────────────────────────────────── */}
+        <ScrollReveal id="how-it-works-section" delay={80}>
           <HowItWorks />
         </ScrollReveal>
 
-        {/* Bottom Call to Action with Scroll Reveal */}
-        <ScrollReveal id="bottom-cta-section" delay={100}>
-          <section className="relative overflow-hidden py-20 md:py-28">
+        {/* ── Testimonials ─────────────────────────────────────── */}
+        <SocialProof />
+
+        {/* ── Final CTA ────────────────────────────────────────── */}
+        <ScrollReveal id="bottom-cta-section" delay={80}>
+          <section className="relative overflow-hidden py-20 md:py-24">
+            <div aria-hidden="true" className="absolute inset-0 bg-dots-b" />
             <div className="container relative z-10">
-              <div className="mx-auto max-w-3xl rounded-3xl border border-border/80 bg-gradient-to-b from-card to-card/60 p-8 sm:p-14 text-center shadow-xl">
-                <h2 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+              <div className="relative mx-auto max-w-3xl overflow-hidden rounded-3xl border border-border/80 bg-card p-8 text-center shadow-card sm:p-14">
+                {/* Emerald hairline accent */}
+                <div
+                  aria-hidden="true"
+                  className="absolute inset-x-14 top-0 h-px bg-gradient-to-r from-transparent via-emerald-500/60 to-transparent"
+                />
+
+                <h2 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
                   Ready to find your best deal?
                 </h2>
-                <p className="mt-4 text-base text-muted-foreground max-w-xl mx-auto">
+                <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-muted-foreground">
                   {isAuthenticated
-                    ? `Welcome back! You are signed in as ${session?.user?.email}. Search any product to start comparing offers.`
-                    : 'No sign-up required. Jump straight in, type any product name, and see who has the lowest price today.'}
+                    ? `You're signed in as ${session?.user?.email}. Search any product to start comparing offers.`
+                    : 'No sign-up required. Type any product name and see who has the lowest price today.'}
                 </p>
-                <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3.5">
+                <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
                   <Link
                     href="/search"
-                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-7 py-3.5 text-sm font-semibold text-white shadow-md shadow-emerald-600/20 hover:bg-emerald-500 hover:shadow-lg transition-all duration-200 active:scale-95"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-7 py-3.5 text-sm font-semibold text-white shadow-md shadow-emerald-600/20 transition-all duration-200 hover:bg-emerald-500 active:scale-[0.98] btn-tactile focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 focus-visible:ring-offset-2 sm:w-auto"
                   >
-                    <span>Start Searching Prices</span>
-                    <ArrowRight className="h-4 w-4" />
+                    Start comparing prices
+                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
                   </Link>
 
                   {isAuthenticated ? (
-                    <div className="inline-flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-5 py-3.5 text-xs sm:text-sm font-semibold text-emerald-700 dark:text-emerald-300">
-                      <UserCheck className="h-4 w-4 stroke-[2.5]" />
-                      <span>Account Active ({session?.user?.email})</span>
-                    </div>
+                    <span className="inline-flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-5 py-3.5 text-xs font-semibold text-emerald-700 sm:text-sm dark:text-emerald-300">
+                      <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
+                      Account active
+                    </span>
                   ) : (
                     <Link
                       href="/auth"
-                      className="w-full sm:w-auto inline-flex items-center justify-center rounded-xl border border-border/80 bg-card px-7 py-3.5 text-sm font-semibold text-foreground hover:bg-muted transition-colors shadow-xs"
+                      className="inline-flex w-full items-center justify-center rounded-xl border border-border bg-transparent px-7 py-3.5 text-sm font-semibold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 sm:w-auto"
                     >
-                      Create Free Account
+                      Create free account
                     </Link>
                   )}
                 </div>

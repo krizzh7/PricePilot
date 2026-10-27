@@ -3,12 +3,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
-  AlertCircle,
   ArrowLeft,
   Clock3,
   Info,
-  RotateCw,
-  Search as SearchIcon,
   LayoutGrid,
   Table as TableIcon,
   ArrowDownUp,
@@ -21,10 +18,10 @@ import { SearchBar } from '@/components/search/SearchBar';
 import { ProductCard } from '@/components/products/ProductCard';
 import { ProductCardSkeleton } from '@/components/products/ProductCardSkeleton';
 import { ComparisonTable } from '@/components/results/ComparisonTable';
-import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { formatPrice, getLowestPrice, sortResults } from '@/lib/utils';
 
-import type { ParsedResult, SearchResponse } from '@/types/search';
+import type { ParsedResult, SearchResponse, SortConfig, SortField } from '@/types/search';
 
 type SearchError = { message: string; retryAfter?: string } | null;
 
@@ -32,10 +29,17 @@ interface SearchExperienceProps {
   initialQuery?: string;
 }
 
+const DEFAULT_SORT_DIRECTION: Record<SortField, SortConfig['direction']> = {
+  retailer: 'asc',
+  price: 'asc',
+  rating: 'desc',
+  shipping: 'asc',
+};
+
 export function SearchExperience({ initialQuery = '' }: SearchExperienceProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const urlQuery = searchParams.get('q') ?? initialQuery;
+  const urlQuery = (searchParams.get('q') ?? initialQuery).trim();
 
   const [query, setQuery] = useState(urlQuery);
   const [results, setResults] = useState<ParsedResult[]>([]);
@@ -44,7 +48,7 @@ export function SearchExperience({ initialQuery = '' }: SearchExperienceProps) {
   const [isDemo, setIsDemo] = useState(false);
   const [truncated, setTruncated] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
-  const [sortBy, setSortBy] = useState<'price_asc' | 'rating_desc' | 'retailer_asc'>('price_asc');
+  const [sort, setSort] = useState<SortConfig>({ field: 'price', direction: 'asc' });
 
   const activeRequestRef = useRef<AbortController | null>(null);
 
@@ -64,6 +68,7 @@ export function SearchExperience({ initialQuery = '' }: SearchExperienceProps) {
     setQuery(clean);
     setIsLoading(true);
     setError(null);
+    setIsDemo(false);
     setTruncated(searchTarget.trim().length > 200);
 
     try {
@@ -76,9 +81,12 @@ export function SearchExperience({ initialQuery = '' }: SearchExperienceProps) {
 
       if (!response.ok) {
         setResults([]);
+        const retryAfter = payload.retryAfter ? String(payload.retryAfter) : undefined;
         setError({
-          message: payload.error || 'Unable to fetch prices. Please try again in a moment.',
-          retryAfter: payload.retryAfter ? String(payload.retryAfter) : undefined,
+          message: `${payload.error || 'Unable to fetch prices. Please try again in a moment.'}${
+            retryAfter ? ` Try again in ${retryAfter} seconds.` : ''
+          }`,
+          retryAfter,
         });
         return;
       }
@@ -108,7 +116,13 @@ export function SearchExperience({ initialQuery = '' }: SearchExperienceProps) {
       setQuery(urlQuery);
       void executeSearch(urlQuery);
     } else {
+      // Navigating back to a URL without `q` should not leave stale results,
+      // errors, or demo/truncation notices on screen.
+      setQuery('');
       setResults([]);
+      setError(null);
+      setIsDemo(false);
+      setTruncated(false);
       setIsLoading(false);
     }
     return () => {
@@ -119,22 +133,28 @@ export function SearchExperience({ initialQuery = '' }: SearchExperienceProps) {
   const handleSearchSubmit = (value: string) => {
     const nextQuery = value.trim().slice(0, 200);
     if (!nextQuery) return;
+    // Re-submitting the same term should refresh prices instead of being a no-op
+    // (router.push to the current URL does not trigger a navigation).
+    if (nextQuery === urlQuery.trim()) {
+      void executeSearch(nextQuery);
+      return;
+    }
     router.push(`/search?q=${encodeURIComponent(nextQuery)}`);
   };
 
-  const sortedResults = useMemo(() => {
-    const list = [...results];
-    if (sortBy === 'price_asc') {
-      return list.sort((a, b) => a.price - b.price);
-    }
-    if (sortBy === 'rating_desc') {
-      return list.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
-    }
-    if (sortBy === 'retailer_asc') {
-      return list.sort((a, b) => a.retailer.localeCompare(b.retailer));
-    }
-    return list;
-  }, [results, sortBy]);
+  const handleSort = useCallback((field: SortField) => {
+    setSort((current) => ({
+      field,
+      direction:
+        current.field === field
+          ? current.direction === 'asc'
+            ? 'desc'
+            : 'asc'
+          : DEFAULT_SORT_DIRECTION[field],
+    }));
+  }, []);
+
+  const sortedResults = useMemo(() => sortResults(results, sort), [results, sort]);
 
   const savings = useMemo(() => {
     if (results.length < 2) return null;
@@ -143,15 +163,10 @@ export function SearchExperience({ initialQuery = '' }: SearchExperienceProps) {
     const min = Math.min(...prices);
     const max = Math.max(...prices);
     const diff = max - min;
-    return diff > 1 ? diff.toFixed(2) : null;
+    return diff > 1 ? diff : null;
   }, [results]);
 
-  const lowestPrice = useMemo(() => {
-    if (!results.length) return null;
-    const prices = results.map((r) => r.price).filter((p) => p > 0);
-    if (!prices.length) return null;
-    return Math.min(...prices).toFixed(2);
-  }, [results]);
+  const lowestPrice = useMemo(() => getLowestPrice(results), [results]);
 
   return (
     <div className="min-h-screen bg-background flex flex-col justify-between">
@@ -198,7 +213,11 @@ export function SearchExperience({ initialQuery = '' }: SearchExperienceProps) {
             <div className="mb-6 flex items-start gap-3 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-4 text-xs sm:text-sm text-emerald-950 dark:text-emerald-200">
               <Info className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
               <div className="leading-relaxed">
-                <span className="font-bold">Catalog Preview:</span> Displaying verified market pricing. Connecting your SerpApi key in <code className="rounded bg-emerald-500/20 px-1 py-0.5 font-mono text-xs">.env.local</code> enables customized real-time web crawlers.
+                <span className="font-bold">Demo mode:</span> showing sample prices because live Google
+                Shopping data is unavailable. Add a valid{' '}
+                <code className="rounded bg-emerald-500/20 px-1 py-0.5 font-mono text-xs">SERPAPI_KEY</code> in{' '}
+                <code className="rounded bg-emerald-500/20 px-1 py-0.5 font-mono text-xs">.env.local</code> to load live
+                offers.
               </div>
             </div>
           )}
@@ -254,15 +273,15 @@ export function SearchExperience({ initialQuery = '' }: SearchExperienceProps) {
                     Found <strong className="text-foreground">{results.length} offers</strong> for{' '}
                     <strong className="text-foreground">&ldquo;{query}&rdquo;</strong>
                   </span>
-                  {lowestPrice && (
+                  {lowestPrice !== null && (
                     <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-bold text-emerald-700 dark:text-emerald-300">
-                      Lowest: ${lowestPrice}
+                      Lowest: {formatPrice(lowestPrice)}
                     </span>
                   )}
-                  {savings && (
+                  {savings !== null && (
                     <span className="inline-flex items-center gap-1 rounded-full bg-emerald-600/10 px-2.5 py-0.5 text-xs font-bold text-emerald-700 dark:text-emerald-300">
                       <TrendingDown className="h-3 w-3" />
-                      Save up to ${savings}
+                      Save up to {formatPrice(savings)}
                     </span>
                   )}
                 </div>
@@ -273,14 +292,22 @@ export function SearchExperience({ initialQuery = '' }: SearchExperienceProps) {
                   <div className="flex items-center gap-1 text-xs text-muted-foreground">
                     <ArrowDownUp className="h-3.5 w-3.5" />
                     <select
-                      value={sortBy}
-                      onChange={(e) => setSortBy(e.target.value as any)}
+                      value={`${sort.field}:${sort.direction}`}
+                      onChange={(e) => {
+                        const [field, direction] = e.target.value.split(':') as [SortField, SortConfig['direction']];
+                        setSort({ field, direction });
+                      }}
                       className="rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
                       aria-label="Sort offers"
                     >
-                      <option value="price_asc">Price: Low to High</option>
-                      <option value="rating_desc">Highest Rated</option>
-                      <option value="retailer_asc">Retailer Name (A-Z)</option>
+                      <option value="price:asc">Price: Low to High</option>
+                      <option value="price:desc">Price: High to Low</option>
+                      <option value="rating:desc">Rating: High to Low</option>
+                      <option value="rating:asc">Rating: Low to High</option>
+                      <option value="retailer:asc">Retailer Name (A-Z)</option>
+                      <option value="retailer:desc">Retailer Name (Z-A)</option>
+                      <option value="shipping:asc">Fastest Shipping</option>
+                      <option value="shipping:desc">Slowest Shipping</option>
                     </select>
                   </div>
 
@@ -320,11 +347,15 @@ export function SearchExperience({ initialQuery = '' }: SearchExperienceProps) {
               {viewMode === 'grid' ? (
                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
                   {sortedResults.map((result, index) => (
-                    <ProductCard key={`${result.productUrl}-${index}`} result={result} index={index} />
+                    <ProductCard
+                      key={`${result.productUrl}-${index}`}
+                      result={result}
+                      isLowest={result.price === lowestPrice}
+                    />
                   ))}
                 </div>
               ) : (
-                <ComparisonTable results={sortedResults} />
+                <ComparisonTable results={sortedResults} sort={sort} onSort={handleSort} />
               )}
             </section>
           )}
